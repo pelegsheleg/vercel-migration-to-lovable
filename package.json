@@ -1,0 +1,29 @@
+{
+  "dependencies": {
+    "@emotion/is-prop-valid": "latest",
+    "@hookform/resolvers": "latest",
+    "@react-google-maps/api": "latest",
+    "canvas-confetti": "latest",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "latest",
+    "framer-motion": "latest",
+    "lucide-react": "^0.454.0",
+    "next": "14.2.16",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-hook-form": "latest",
+    "react-intersection-observer": "latest",
+    "react-masonry-css": "latest",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "postcss": "^8.5",
+    "typescript": "^5"
+  }
+}
