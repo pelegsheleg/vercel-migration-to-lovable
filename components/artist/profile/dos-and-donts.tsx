@@ -1,35 +1,73 @@
-"use client"
-
-import type React from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, XCircle, Info } from "lucide-react"
 
 interface DosAndDontsProps {
-  dos: string
-  donts: string
-  onChange: (dos: string, donts: string) => void
+  dos: string[]
+  donts: string[]
+  specialRequirements: string[]
 }
 
-const DosAndDonts: React.FC<DosAndDontsProps> = ({ dos, donts, onChange }) => {
-  const handleDosChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value, donts)
-  }
-
-  const handleDontsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(dos, e.target.value)
-  }
-
+export default function DosAndDonts({ dos, donts, specialRequirements }: DosAndDontsProps) {
   return (
-    <div>
-      <div>
-        <label htmlFor="dos">Dos:</label>
-        <textarea id="dos" value={dos} onChange={handleDosChange} />
-      </div>
-      <div>
-        <label htmlFor="donts">Dont's:</label>
-        <textarea id="donts" value={donts} onChange={handleDontsChange} />
-      </div>
-    </div>
+    <Card className="bg-purple-900/20 border-purple-500/30">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Info className="h-5 w-5 text-purple-400" />
+          Guidelines & Requirements
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {dos.length > 0 && (
+          <div>
+            <h4 className="text-green-400 font-medium mb-2 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Do's
+            </h4>
+            <ul className="space-y-1">
+              {dos.map((item, index) => (
+                <li key={index} className="text-white text-sm flex items-start gap-2">
+                  <span className="text-green-400 mt-1">•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {donts.length > 0 && (
+          <div>
+            <h4 className="text-red-400 font-medium mb-2 flex items-center gap-2">
+              <XCircle className="h-4 w-4" />
+              Don'ts
+            </h4>
+            <ul className="space-y-1">
+              {donts.map((item, index) => (
+                <li key={index} className="text-white text-sm flex items-start gap-2">
+                  <span className="text-red-400 mt-1">•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {specialRequirements.length > 0 && (
+          <div>
+            <h4 className="text-purple-300 font-medium mb-2">Special Requirements:</h4>
+            <ul className="space-y-1">
+              {specialRequirements.map((item, index) => (
+                <li key={index} className="text-white text-sm flex items-start gap-2">
+                  <span className="text-purple-400 mt-1">•</span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
-export default DosAndDonts
+// Named export for compatibility
 export { DosAndDonts }

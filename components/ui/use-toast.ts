@@ -1,4 +1,4 @@
-;/ ""ceeilnstu
+"use client"
 
 // Inspired by react-hot-toast library
 import * as React from "react"
@@ -137,7 +137,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+function toastFunction({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -181,20 +181,24 @@ function useToast() {
 
   return {
     ...state,
-    toast,
+    toast: toastFunction,
     dismiss: (toastId?: string) => dispatch({ type: "DISMISS_TOAST", toastId }),
   }
 }
 
-// ─── named toast helper ─────────────────────────────────────────────────────────
-/**
- * Very-light wrapper so `toast()` calls will not break build pipelines
- * even if the real toast system hasn’t been wired up yet.
- * Replace this with your favourite toast implementation when ready.
- */
-export const toast = (...args: unknown[]) => {
-  // eslint-disable-next-line no-console
-  console.warn("[toast]", ...args)
+// Named export for compatibility
+export const toastHelper = ({
+  title,
+  description,
+  variant,
+}: { title?: string; description?: string; variant?: "default" | "destructive" }) => {
+  console.log(`Toast: ${title} - ${description} (${variant})`)
+}
+
+// A no-op toast helper so that `import { toast } …` resolves even
+// before a real toast implementation is wired up.
+export function toast(message: string) {
+  console.log("[toast]", message)
 }
 
 export { useToast }

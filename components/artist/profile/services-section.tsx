@@ -1,65 +1,73 @@
-"use client"
-
-import type React from "react"
-import { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Palette, Clock } from "lucide-react"
 
 interface ServicesSectionProps {
-  onChange: (values: { [key: string]: any }) => void
+  services: string[]
+  specialties: string[]
+  estimatedTimes: {
+    small: string
+    medium: string
+    large: string
+  }
 }
 
-const ServicesSection: React.FC<ServicesSectionProps> = ({ onChange }) => {
-  const [services, setServices] = useState({
-    photography: false,
-    videography: false,
-    mixing: false,
-    mastering: false,
-    production: false,
-    songwriting: false,
-  })
-
-  const handleServiceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = event.target
-    const updatedServices = { ...services, [name]: checked }
-    setServices(updatedServices)
-    onChange(updatedServices)
-  }
-
+export default function ServicesSection({ services, specialties, estimatedTimes }: ServicesSectionProps) {
   return (
-    <div>
-      <h3>Services Offered</h3>
-      <label>
-        <input type="checkbox" name="photography" checked={services.photography} onChange={handleServiceChange} />
-        Photography
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" name="videography" checked={services.videography} onChange={handleServiceChange} />
-        Videography
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" name="mixing" checked={services.mixing} onChange={handleServiceChange} />
-        Mixing
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" name="mastering" checked={services.mastering} onChange={handleServiceChange} />
-        Mastering
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" name="production" checked={services.production} onChange={handleServiceChange} />
-        Production
-      </label>
-      <br />
-      <label>
-        <input type="checkbox" name="songwriting" checked={services.songwriting} onChange={handleServiceChange} />
-        Songwriting
-      </label>
-      <br />
-    </div>
+    <Card className="bg-purple-900/20 border-purple-500/30">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Palette className="h-5 w-5 text-purple-400" />
+          Services & Specialties
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <h4 className="text-purple-300 mb-2">Services Offered:</h4>
+          <div className="flex flex-wrap gap-2">
+            {services.map((service, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {service}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-purple-300 mb-2">Specialties:</h4>
+          <div className="flex flex-wrap gap-2">
+            {specialties.map((specialty, index) => (
+              <Badge key={index} className="bg-purple-700 text-xs">
+                {specialty}
+              </Badge>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="text-purple-300 mb-2 flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Estimated Times:
+          </h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-white text-sm">Small piece:</span>
+              <span className="text-purple-300 text-sm">{estimatedTimes.small}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-white text-sm">Medium piece:</span>
+              <span className="text-purple-300 text-sm">{estimatedTimes.medium}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-white text-sm">Large piece:</span>
+              <span className="text-purple-300 text-sm">{estimatedTimes.large}</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
-export default ServicesSection
+// Named export for compatibility
 export { ServicesSection }

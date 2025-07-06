@@ -1,9 +1,7 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect, useCallback } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,7 +16,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { format } from "date-fns"
 import {
   CalendarIcon,
   Upload,
@@ -40,7 +37,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api"
 
 interface MatchPreferences {
   image: string | null
@@ -143,6 +139,16 @@ const styles = [
   { name: "Japanese", icon: "🌸" },
   { name: "Tribal", icon: "🔺" },
 ]
+
+// Simple date formatter to replace date-fns
+const formatDate = (date: Date) => {
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
+}
 
 // Generate detailed availability data for the next 30 days
 const generateDetailedAvailabilityData = () => {
@@ -541,13 +547,7 @@ const DynamicPriceEstimator: React.FC<{
           {Math.round(currentEstimate)}+
         </span>
         {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-xs text-green-400"
-          >
-            Live estimate
-          </motion.div>
+          <div className="text-xs text-green-400 opacity-100 scale-100 transition-all duration-200">Live estimate</div>
         )}
       </div>
 
@@ -677,7 +677,7 @@ const AvailabilityHeatMap: React.FC<{ availability: ArtistMetrics["availability"
               <TooltipContent className="bg-gray-900 border border-purple-500/30 max-w-xs p-3">
                 <div className="space-y-2">
                   <div className="border-b border-purple-500/30 pb-1">
-                    <div className="font-medium text-white">{format(date, "EEEE, MMM dd")}</div>
+                    <div className="font-medium text-white">{formatDate(date)}</div>
                     <div
                       className={cn(
                         "text-sm font-medium",
@@ -862,6 +862,37 @@ const ArtistComparisonModal: React.FC<{
   )
 }
 
+// Simple Map Component (placeholder for Google Maps)
+const SimpleMapView: React.FC<{ artists: Artist[]; onMarkerClick: (artist: Artist) => void }> = ({
+  artists,
+  onMarkerClick,
+}) => {
+  return (
+    <div className="h-96 w-full bg-gray-800 rounded-lg flex items-center justify-center relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-blue-900/20" />
+      <div className="text-center z-10">
+        <MapPin className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+        <h3 className="text-xl font-semibold text-white mb-2">Artist Locations</h3>
+        <p className="text-purple-300 mb-4">Interactive map view</p>
+        <div className="grid grid-cols-1 gap-2 max-w-xs">
+          {artists.map((artist) => (
+            <Button
+              key={artist.id}
+              variant="outline"
+              size="sm"
+              className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+              onClick={() => onMarkerClick(artist)}
+            >
+              <MapPin className="h-3 w-3 mr-2" />
+              {artist.name} - {artist.distance}mi
+            </Button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function MatchesPage() {
   const [step, setStep] = useState(1)
   const [progress, setProgress] = useState(25)
@@ -884,11 +915,6 @@ export default function MatchesPage() {
   const [selectedForComparison, setSelectedForComparison] = useState<Artist[]>([])
   const [showComparison, setShowComparison] = useState(false)
   const [selectedArtistForDialog, setSelectedArtistForDialog] = useState<Artist | null>(null)
-
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-  })
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -961,11 +987,6 @@ export default function MatchesPage() {
     }
   }, [step, findMatches])
 
-  const fadeIn = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
-  }
-
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-gradient-to-b from-gray-950 to-purple-950 text-white">
@@ -973,14 +994,14 @@ export default function MatchesPage() {
           <div className="max-w-4xl mx-auto px-4 py-4">
             <div className="flex items-center justify-between mb-4">
               <Link href="/" className="flex items-center gap-2">
-                <motion.div className="relative w-8 h-8" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <div className="relative w-8 h-8 hover:scale-110 transition-transform">
                   <Image
                     src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dog%20face%20image%20background-80tC7pNknHSwIU4KYQODUQRYlZl8t1.png"
                     alt="Tattit Logo"
                     fill
                     className="object-contain"
                   />
-                </motion.div>
+                </div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
                   Find Your Artist
                 </h1>
@@ -991,590 +1012,558 @@ export default function MatchesPage() {
         </div>
 
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={step}
-              initial="hidden"
-              animate="visible"
-              exit="hidden"
-              variants={fadeIn}
-              transition={{ duration: 0.5 }}
-            >
-              {step === 1 && (
-                <div className="space-y-6">
-                  <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-bold">Share Your Vision</h2>
-                    <p className="text-purple-300">Upload a reference image of your tattoo idea</p>
-                  </div>
+          <div className="transition-all duration-500 ease-in-out">
+            {step === 1 && (
+              <div className="space-y-6 opacity-100 translate-y-0">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold">Share Your Vision</h2>
+                  <p className="text-purple-300">Upload a reference image of your tattoo idea</p>
+                </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center transition-all hover:border-purple-500/50">
-                        <label className="cursor-pointer block">
-                          <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-                          <Upload className="w-12 h-12 mx-auto text-purple-400 mb-4" />
-                          <p className="text-sm text-purple-300">Click to upload your design</p>
-                        </label>
-                      </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-purple-500/30 rounded-lg p-8 text-center transition-all hover:border-purple-500/50">
+                      <label className="cursor-pointer block">
+                        <Input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                        <Upload className="w-12 h-12 mx-auto text-purple-400 mb-4" />
+                        <p className="text-sm text-purple-300">Click to upload your design</p>
+                      </label>
                     </div>
-
-                    {preferences.image ? (
-                      <div className="relative aspect-square rounded-lg overflow-hidden bg-purple-900/20">
-                        <Image
-                          src={preferences.image || "/placeholder.svg"}
-                          alt="Reference image"
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                    ) : (
-                      <div className="aspect-square rounded-lg bg-purple-900/20 flex items-center justify-center">
-                        <p className="text-purple-300">Preview will appear here</p>
-                      </div>
-                    )}
                   </div>
 
+                  {preferences.image ? (
+                    <div className="relative aspect-square rounded-lg overflow-hidden bg-purple-900/20">
+                      <Image
+                        src={preferences.image || "/placeholder.svg"}
+                        alt="Reference image"
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square rounded-lg bg-purple-900/20 flex items-center justify-center">
+                      <p className="text-purple-300">Preview will appear here</p>
+                    </div>
+                  )}
+                </div>
+
+                <Button
+                  onClick={nextStep}
+                  className="w-full bg-purple-700 hover:bg-purple-600"
+                  disabled={!preferences.image}
+                >
+                  Continue <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-6 opacity-100 translate-y-0">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold">Choose Your Style</h2>
+                  <p className="text-purple-300">Select the style that matches your vision</p>
+                </div>
+
+                <RadioGroup
+                  value={preferences.style}
+                  onValueChange={(value) => setPreferences((prev) => ({ ...prev, style: value }))}
+                  className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                >
+                  {styles.map((style) => (
+                    <div key={style.name}>
+                      <RadioGroupItem value={style.name} id={style.name} className="peer sr-only" />
+                      <Label
+                        htmlFor={style.name}
+                        className="flex flex-col items-center justify-center p-4 border-2 border-purple-500/30 rounded-lg cursor-pointer transition-all hover:bg-purple-900/20 peer-checked:bg-purple-900/40 peer-checked:border-purple-500"
+                      >
+                        <span className="text-2xl mb-2">{style.icon}</span>
+                        <span className="font-medium text-sm">{style.name}</span>
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+
+                <div className="flex gap-4">
+                  <Button
+                    onClick={prevStep}
+                    variant="outline"
+                    className="flex-1 bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                  </Button>
                   <Button
                     onClick={nextStep}
-                    className="w-full bg-purple-700 hover:bg-purple-600"
-                    disabled={!preferences.image}
+                    className="flex-1 bg-purple-700 hover:bg-purple-600"
+                    disabled={!preferences.style}
                   >
                     Continue <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {step === 2 && (
-                <div className="space-y-6">
-                  <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-bold">Choose Your Style</h2>
-                    <p className="text-purple-300">Select the style that matches your vision</p>
-                  </div>
-
-                  <RadioGroup
-                    value={preferences.style}
-                    onValueChange={(value) => setPreferences((prev) => ({ ...prev, style: value }))}
-                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                  >
-                    {styles.map((style) => (
-                      <div key={style.name}>
-                        <RadioGroupItem value={style.name} id={style.name} className="peer sr-only" />
-                        <Label
-                          htmlFor={style.name}
-                          className="flex flex-col items-center justify-center p-4 border-2 border-purple-500/30 rounded-lg cursor-pointer transition-all hover:bg-purple-900/20 peer-checked:bg-purple-900/40 peer-checked:border-purple-500"
-                        >
-                          <span className="text-2xl mb-2">{style.icon}</span>
-                          <span className="font-medium text-sm">{style.name}</span>
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-
-                  <div className="flex gap-4">
-                    <Button
-                      onClick={prevStep}
-                      variant="outline"
-                      className="flex-1 bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                    </Button>
-                    <Button
-                      onClick={nextStep}
-                      className="flex-1 bg-purple-700 hover:bg-purple-600"
-                      disabled={!preferences.style}
-                    >
-                      Continue <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
+            {step === 3 && (
+              <div className="space-y-6 opacity-100 translate-y-0">
+                <div className="text-center space-y-2">
+                  <h2 className="text-2xl font-bold">Set Your Preferences</h2>
+                  <p className="text-purple-300">Tell us about your requirements</p>
                 </div>
-              )}
 
-              {step === 3 && (
-                <div className="space-y-6">
-                  <div className="text-center space-y-2">
-                    <h2 className="text-2xl font-bold">Set Your Preferences</h2>
-                    <p className="text-purple-300">Tell us about your requirements</p>
-                  </div>
-
-                  <div className="grid gap-6 p-6 bg-purple-900/20 rounded-lg border border-purple-500/30">
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <DollarSign className="h-4 w-4 text-purple-400" />
-                        Budget Range
-                      </Label>
-                      <div className="relative pt-6">
-                        <Slider
-                          min={50}
-                          max={1000}
-                          step={10}
-                          value={preferences.price}
-                          onValueChange={(value) => setPreferences((prev) => ({ ...prev, price: value }))}
-                          className="w-full"
-                        />
-                        <div className="absolute left-0 right-0 top-0 flex justify-between text-sm text-purple-300">
-                          <span>$50</span>
-                          <span>$1000</span>
-                        </div>
-                      </div>
-                      <div className="text-center text-lg font-semibold text-purple-300">
-                        Up to ${preferences.price[0]}
+                <div className="grid gap-6 p-6 bg-purple-900/20 rounded-lg border border-purple-500/30">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-purple-400" />
+                      Budget Range
+                    </Label>
+                    <div className="relative pt-6">
+                      <Slider
+                        min={50}
+                        max={1000}
+                        step={10}
+                        value={preferences.price}
+                        onValueChange={(value) => setPreferences((prev) => ({ ...prev, price: value }))}
+                        className="w-full"
+                      />
+                      <div className="absolute left-0 right-0 top-0 flex justify-between text-sm text-purple-300">
+                        <span>$50</span>
+                        <span>$1000</span>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-purple-400" />
-                        Location
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Enter your location"
-                          value={preferences.location}
-                          onChange={(e) => setPreferences((prev) => ({ ...prev, location: e.target.value }))}
-                          className="bg-purple-950/30 border-purple-500/30 flex-grow"
-                          disabled={locationMethod === "current"}
-                        />
-                        <Button
-                          variant="outline"
-                          className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
-                          onClick={() => handleLocationMethod(locationMethod === "manual" ? "current" : "manual")}
-                        >
-                          {locationMethod === "manual" ? (
-                            <Crosshair className="h-4 w-4 mr-2" />
-                          ) : (
-                            <MapPin className="h-4 w-4 mr-2" />
-                          )}
-                          {locationMethod === "manual" ? "Use Current" : "Enter Manually"}
-                        </Button>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-purple-400" />
-                        Search Radius
-                      </Label>
-                      <div className="relative pt-6">
-                        <Slider
-                          min={1}
-                          max={100}
-                          step={1}
-                          value={[preferences.radius]}
-                          onValueChange={(value) => setPreferences((prev) => ({ ...prev, radius: value[0] }))}
-                          className="w-full"
-                        />
-                        <div className="absolute left-0 right-0 top-0 flex justify-between text-sm text-purple-300">
-                          <span>1 mile</span>
-                          <span>100 miles</span>
-                        </div>
-                      </div>
-                      <div className="text-center text-lg font-semibold text-purple-300">
-                        {preferences.radius} miles
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-purple-400" />
-                        Preferred Date and Time Range
-                      </Label>
-                      <div className="flex flex-col gap-4">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full justify-start text-left bg-purple-950/30 border-purple-500/30",
-                                !preferences.date && "text-purple-300",
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {preferences.date ? format(preferences.date, "PPP") : <span>Pick a date</span>}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={preferences.date}
-                              onSelect={(date) => setPreferences((prev) => ({ ...prev, date }))}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <div className="flex gap-4">
-                          <Select
-                            value={preferences.startTime}
-                            onValueChange={(value) => setPreferences((prev) => ({ ...prev, startTime: value }))}
-                          >
-                            <SelectTrigger className="w-full bg-purple-950/30 border-purple-500/30">
-                              <SelectValue placeholder="Start time" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
-                                <SelectItem key={hour} value={`${hour.toString().padStart(2, "0")}:00`}>
-                                  {`${hour.toString().padStart(2, "0")}:00`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <Select
-                            value={preferences.endTime}
-                            onValueChange={(value) => setPreferences((prev) => ({ ...prev, endTime: value }))}
-                          >
-                            <SelectTrigger className="w-full bg-purple-950/30 border-purple-500/30">
-                              <SelectValue placeholder="End time" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
-                                <SelectItem key={hour} value={`${hour.toString().padStart(2, "0")}:00`}>
-                                  {`${hour.toString().padStart(2, "0")}:00`}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-purple-400" />
-                        Artist Experience
-                      </Label>
-                      <RadioGroup
-                        value={preferences.experience}
-                        onValueChange={(value) => setPreferences((prev) => ({ ...prev, experience: value }))}
-                        className="grid grid-cols-3 gap-4"
-                      >
-                        {["Any", "Intermediate", "Expert"].map((level) => (
-                          <div key={level}>
-                            <RadioGroupItem value={level} id={`experience-${level}`} className="peer sr-only" />
-                            <Label
-                              htmlFor={`experience-${level}`}
-                              className="flex items-center justify-center p-2 border-2 border-purple-500/30 rounded-lg cursor-pointer transition-all hover:bg-purple-900/20 peer-checked:bg-purple-900/40 peer-checked:border-purple-500"
-                            >
-                              {level}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
+                    <div className="text-center text-lg font-semibold text-purple-300">
+                      Up to ${preferences.price[0]}
                     </div>
                   </div>
 
-                  <div className="flex gap-4">
-                    <Button
-                      onClick={prevStep}
-                      variant="outline"
-                      className="flex-1 bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                    </Button>
-                    <Button
-                      onClick={nextStep}
-                      className="flex-1 bg-purple-700 hover:bg-purple-600"
-                      disabled={!preferences.location || !preferences.date || !preferences.experience}
-                    >
-                      Find Matches <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {step === 4 && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <div>
-                      <h2 className="text-2xl font-bold">Your Matches</h2>
-                      <p className="text-purple-300">Artists perfect for your style and budget</p>
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-purple-400" />
+                      Location
+                    </Label>
                     <div className="flex gap-2">
-                      <Select defaultValue="relevance">
-                        <SelectTrigger className="w-[180px] bg-purple-950/30 border-purple-500/30">
-                          <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="relevance">Relevance</SelectItem>
-                          <SelectItem value="rating">Rating</SelectItem>
-                          <SelectItem value="price_low">Price: Low to High</SelectItem>
-                          <SelectItem value="price_high">Price: High to Low</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                        placeholder="Enter your location"
+                        value={preferences.location}
+                        onChange={(e) => setPreferences((prev) => ({ ...prev, location: e.target.value }))}
+                        className="bg-purple-950/30 border-purple-500/30 flex-grow"
+                        disabled={locationMethod === "current"}
+                      />
                       <Button
-                        onClick={() => setCompareMode(!compareMode)}
-                        variant={compareMode ? "default" : "outline"}
-                        className={
-                          compareMode ? "bg-purple-700" : "bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
-                        }
+                        variant="outline"
+                        className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+                        onClick={() => handleLocationMethod(locationMethod === "manual" ? "current" : "manual")}
                       >
-                        <GitCompare className="mr-2 h-4 w-4" />
-                        Compare
+                        {locationMethod === "manual" ? (
+                          <Crosshair className="h-4 w-4 mr-2" />
+                        ) : (
+                          <MapPin className="h-4 w-4 mr-2" />
+                        )}
+                        {locationMethod === "manual" ? "Use Current" : "Enter Manually"}
                       </Button>
                     </div>
                   </div>
 
-                  {compareMode && (
-                    <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4 mb-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <GitCompare className="h-5 w-5 text-purple-400" />
-                          <span className="text-purple-300">
-                            Select 2 artists to compare ({selectedForComparison.length}/2)
-                          </span>
-                        </div>
-                        <div className="flex gap-2">
-                          {selectedForComparison.length === 2 && (
-                            <Button onClick={startComparison} size="sm" className="bg-purple-700 hover:bg-purple-600">
-                              Compare Selected
-                            </Button>
-                          )}
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-purple-400" />
+                      Search Radius
+                    </Label>
+                    <div className="relative pt-6">
+                      <Slider
+                        min={1}
+                        max={100}
+                        step={1}
+                        value={[preferences.radius]}
+                        onValueChange={(value) => setPreferences((prev) => ({ ...prev, radius: value[0] }))}
+                        className="w-full"
+                      />
+                      <div className="absolute left-0 right-0 top-0 flex justify-between text-sm text-purple-300">
+                        <span>1 mile</span>
+                        <span>100 miles</span>
+                      </div>
+                    </div>
+                    <div className="text-center text-lg font-semibold text-purple-300">{preferences.radius} miles</div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-purple-400" />
+                      Preferred Date and Time Range
+                    </Label>
+                    <div className="flex flex-col gap-4">
+                      <Popover>
+                        <PopoverTrigger asChild>
                           <Button
-                            onClick={exitCompareMode}
-                            size="sm"
                             variant="outline"
-                            className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
-                          >
-                            Exit Compare
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {isLoading ? (
-                    <div className="flex justify-center items-center h-64">
-                      <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex justify-end mb-4">
-                        <Button
-                          onClick={() => setShowMap(!showMap)}
-                          variant="outline"
-                          className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
-                        >
-                          {showMap ? "Hide Map" : "Show Map"}
-                        </Button>
-                      </div>
-
-                      {showMap && isLoaded && (
-                        <div className="h-96 w-full rounded-lg overflow-hidden mb-6">
-                          <GoogleMap
-                            mapContainerStyle={{ width: "100%", height: "100%" }}
-                            center={{ lat: 40.7128, lng: -74.006 }}
-                            zoom={12}
-                          >
-                            {matchedArtists.map((artist) => (
-                              <Marker
-                                key={artist.id}
-                                position={{ lat: artist.lat, lng: artist.lng }}
-                                icon={{
-                                  url: "/marker.svg",
-                                  scaledSize: new window.google.maps.Size(30, 30),
-                                }}
-                                onClick={() => setSelectedArtistForDialog(artist)} // Add this line
-                              />
-                            ))}
-                          </GoogleMap>
-                        </div>
-                      )}
-
-                      <div className="grid gap-4">
-                        {matchedArtists.map((artist) => (
-                          <motion.div
-                            key={artist.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
                             className={cn(
-                              "bg-purple-900/20 rounded-lg border border-purple-500/30 overflow-hidden transition-all",
-                              compareMode &&
-                                selectedForComparison.find((a) => a.id === artist.id) &&
-                                "ring-2 ring-purple-500",
+                              "w-full justify-start text-left bg-purple-950/30 border-purple-500/30",
+                              !preferences.date && "text-purple-300",
                             )}
                           >
-                            <div className="p-4">
-                              <div className="flex items-start gap-4 mb-4">
-                                <div className="relative">
-                                  <Avatar className="h-16 w-16 ring-2 ring-purple-500">
-                                    <AvatarImage src={artist.avatar || "/placeholder.svg"} alt={artist.name} />
-                                    <AvatarFallback>{artist.name[0]}</AvatarFallback>
-                                  </Avatar>
-                                  {compareMode && (
-                                    <Button
-                                      size="sm"
-                                      variant={
-                                        selectedForComparison.find((a) => a.id === artist.id) ? "default" : "outline"
-                                      }
-                                      className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
-                                      onClick={() => toggleCompareSelection(artist)}
-                                      disabled={
-                                        !selectedForComparison.find((a) => a.id === artist.id) &&
-                                        selectedForComparison.length >= 2
-                                      }
-                                    >
-                                      {selectedForComparison.find((a) => a.id === artist.id) ? "✓" : "+"}
-                                    </Button>
-                                  )}
-                                </div>
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {preferences.date ? formatDate(preferences.date) : <span>Pick a date</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={preferences.date}
+                            onSelect={(date) => setPreferences((prev) => ({ ...prev, date }))}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <div className="flex gap-4">
+                        <Select
+                          value={preferences.startTime}
+                          onValueChange={(value) => setPreferences((prev) => ({ ...prev, startTime: value }))}
+                        >
+                          <SelectTrigger className="w-full bg-purple-950/30 border-purple-500/30">
+                            <SelectValue placeholder="Start time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                              <SelectItem key={hour} value={`${hour.toString().padStart(2, "0")}:00`}>
+                                {`${hour.toString().padStart(2, "0")}:00`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={preferences.endTime}
+                          onValueChange={(value) => setPreferences((prev) => ({ ...prev, endTime: value }))}
+                        >
+                          <SelectTrigger className="w-full bg-purple-950/30 border-purple-500/30">
+                            <SelectValue placeholder="End time" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({ length: 24 }, (_, i) => i).map((hour) => (
+                              <SelectItem key={hour} value={`${hour.toString().padStart(2, "0")}:00`}>
+                                {`${hour.toString().padStart(2, "0")}:00`}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
 
-                                <div className="flex-1 space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <h3 className="text-lg font-semibold">{artist.name}</h3>
-                                    <div className="flex items-center gap-2">
-                                      <Tooltip>
-                                        <TooltipTrigger>
-                                          <Badge className="bg-green-600 hover:bg-green-700 cursor-help">
-                                            {artist.metrics.matchBreakdown.overall}% match
-                                          </Badge>
-                                        </TooltipTrigger>
-                                        <TooltipContent className="bg-gray-900 border border-purple-500/30 p-0">
-                                          <MatchBreakdownTooltip metrics={artist.metrics.matchBreakdown} />
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </div>
-                                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-purple-400" />
+                      Artist Experience
+                    </Label>
+                    <RadioGroup
+                      value={preferences.experience}
+                      onValueChange={(value) => setPreferences((prev) => ({ ...prev, experience: value }))}
+                      className="grid grid-cols-3 gap-4"
+                    >
+                      {["Any", "Intermediate", "Expert"].map((level) => (
+                        <div key={level}>
+                          <RadioGroupItem value={level} id={`experience-${level}`} className="peer sr-only" />
+                          <Label
+                            htmlFor={`experience-${level}`}
+                            className="flex items-center justify-center p-2 border-2 border-purple-500/30 rounded-lg cursor-pointer transition-all hover:bg-purple-900/20 peer-checked:bg-purple-900/40 peer-checked:border-purple-500"
+                          >
+                            {level}
+                          </Label>
+                        </div>
+                      ))}
+                    </RadioGroup>
+                  </div>
+                </div>
 
-                                  <div className="flex items-center gap-4 text-sm">
-                                    <div className="flex items-center gap-1">
-                                      <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                                      <span className="font-medium">{artist.rating}</span>
-                                    </div>
-                                    <span className="text-purple-300">{artist.specialization}</span>
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-purple-300">${artist.hourlyRate}/hr</span>
-                                      <Tooltip>
-                                        <TooltipTrigger>
-                                          <Info className="h-3 w-3 text-purple-400 cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent className="bg-gray-900 border border-purple-500/30">
-                                          <div className="text-sm max-w-xs">{artist.metrics.pricing.explanation}</div>
-                                        </TooltipContent>
-                                      </Tooltip>
-                                    </div>
-                                    <span className="text-purple-300">{artist.distance} miles away</span>
-                                  </div>
-                                </div>
+                <div className="flex gap-4">
+                  <Button
+                    onClick={prevStep}
+                    variant="outline"
+                    className="flex-1 bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                  </Button>
+                  <Button
+                    onClick={nextStep}
+                    className="flex-1 bg-purple-700 hover:bg-purple-600"
+                    disabled={!preferences.location || !preferences.date || !preferences.experience}
+                  >
+                    Find Matches <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
 
-                                <div className="flex flex-col items-end gap-2">
-                                  <MiniRadarChart data={artist.metrics.radarData} size={60} />
-                                  <span className="text-xs text-purple-300">Strengths</span>
-                                </div>
-                              </div>
+            {step === 4 && (
+              <div className="space-y-6 opacity-100 translate-y-0">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-2xl font-bold">Your Matches</h2>
+                    <p className="text-purple-300">Artists perfect for your style and budget</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select defaultValue="relevance">
+                      <SelectTrigger className="w-[180px] bg-purple-950/30 border-purple-500/30">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="relevance">Relevance</SelectItem>
+                        <SelectItem value="rating">Rating</SelectItem>
+                        <SelectItem value="price_low">Price: Low to High</SelectItem>
+                        <SelectItem value="price_high">Price: High to Low</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => setCompareMode(!compareMode)}
+                      variant={compareMode ? "default" : "outline"}
+                      className={
+                        compareMode ? "bg-purple-700" : "bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+                      }
+                    >
+                      <GitCompare className="mr-2 h-4 w-4" />
+                      Compare
+                    </Button>
+                  </div>
+                </div>
 
-                              {/* Enhanced Metrics Row */}
-                              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-3 bg-black/20 rounded-lg">
-                                <div className="text-center">
-                                  <div className="text-lg font-bold text-white">
-                                    {artist.metrics.portfolioQuality.score}/100
-                                  </div>
-                                  <div className="text-xs text-purple-300">Portfolio Quality</div>
-                                  <div className="text-xs text-green-400 mt-1">
-                                    {artist.metrics.portfolioQuality.callout}
-                                  </div>
-                                </div>
+                {compareMode && (
+                  <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4 mb-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <GitCompare className="h-5 w-5 text-purple-400" />
+                        <span className="text-purple-300">
+                          Select 2 artists to compare ({selectedForComparison.length}/2)
+                        </span>
+                      </div>
+                      <div className="flex gap-2">
+                        {selectedForComparison.length === 2 && (
+                          <Button onClick={startComparison} size="sm" className="bg-purple-700 hover:bg-purple-600">
+                            Compare Selected
+                          </Button>
+                        )}
+                        <Button
+                          onClick={exitCompareMode}
+                          size="sm"
+                          variant="outline"
+                          className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+                        >
+                          Exit Compare
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                                <div className="text-center">
-                                  <div className="w-full bg-purple-950 rounded-full h-2 mb-1">
-                                    <div
-                                      className="bg-purple-500 h-2 rounded-full"
-                                      style={{ width: `${artist.metrics.consistencyScore}%` }}
-                                    ></div>
-                                  </div>
-                                  <div className="text-sm font-medium text-white">
-                                    {artist.metrics.consistencyScore}%
-                                  </div>
-                                  <div className="text-xs text-purple-300">Style Consistency</div>
-                                </div>
+                {isLoading ? (
+                  <div className="flex justify-center items-center h-64">
+                    <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-purple-500"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex justify-end mb-4">
+                      <Button
+                        onClick={() => setShowMap(!showMap)}
+                        variant="outline"
+                        className="bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50"
+                      >
+                        {showMap ? "Hide Map" : "Show Map"}
+                      </Button>
+                    </div>
 
-                                <div className="text-center">
-                                  <div className="flex items-center justify-center gap-1 mb-1">
-                                    <Zap className="h-3 w-3 text-yellow-400" />
-                                    <span className="text-sm font-medium text-white">
-                                      {artist.metrics.speedComplexity.avgTimeSmall}
-                                    </span>
-                                  </div>
-                                  <div className="text-xs text-purple-300">Avg. Small Piece</div>
-                                </div>
+                    {showMap && (
+                      <div className="h-96 w-full rounded-lg overflow-hidden mb-6">
+                        <SimpleMapView artists={matchedArtists} onMarkerClick={setSelectedArtistForDialog} />
+                      </div>
+                    )}
 
-                                <div className="text-center">
-                                  <DynamicPriceEstimator pricing={artist.metrics.pricing} />
-                                  <div className="text-xs text-purple-300 mt-1">Est. Price</div>
-                                </div>
-
-                                <div className="text-center">
-                                  <AvailabilityHeatMap availability={artist.metrics.availability} />
-                                </div>
-                              </div>
-
-                              {/* Speed & Expertise Badges */}
-                              <div className="flex flex-wrap gap-2 mb-4">
-                                {artist.metrics.speedComplexity.expertise.map((skill, index) => (
-                                  <Badge
-                                    key={index}
-                                    variant="outline"
-                                    className="text-xs bg-purple-950/50 border-purple-500/30"
+                    <div className="grid gap-4">
+                      {matchedArtists.map((artist) => (
+                        <div
+                          key={artist.id}
+                          className={cn(
+                            "bg-purple-900/20 rounded-lg border border-purple-500/30 overflow-hidden transition-all opacity-100 translate-y-0",
+                            compareMode &&
+                              selectedForComparison.find((a) => a.id === artist.id) &&
+                              "ring-2 ring-purple-500",
+                          )}
+                        >
+                          <div className="p-4">
+                            <div className="flex items-start gap-4 mb-4">
+                              <div className="relative">
+                                <Avatar className="h-16 w-16 ring-2 ring-purple-500">
+                                  <AvatarImage src={artist.avatar || "/placeholder.svg"} alt={artist.name} />
+                                  <AvatarFallback>{artist.name[0]}</AvatarFallback>
+                                </Avatar>
+                                {compareMode && (
+                                  <Button
+                                    size="sm"
+                                    variant={
+                                      selectedForComparison.find((a) => a.id === artist.id) ? "default" : "outline"
+                                    }
+                                    className="absolute -top-2 -right-2 h-6 w-6 p-0 rounded-full"
+                                    onClick={() => toggleCompareSelection(artist)}
+                                    disabled={
+                                      !selectedForComparison.find((a) => a.id === artist.id) &&
+                                      selectedForComparison.length >= 2
+                                    }
                                   >
-                                    {skill}
-                                  </Badge>
+                                    {selectedForComparison.find((a) => a.id === artist.id) ? "✓" : "+"}
+                                  </Button>
+                                )}
+                              </div>
+
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="text-lg font-semibold">{artist.name}</h3>
+                                  <div className="flex items-center gap-2">
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Badge className="bg-green-600 hover:bg-green-700 cursor-help">
+                                          {artist.metrics.matchBreakdown.overall}% match
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent className="bg-gray-900 border border-purple-500/30 p-0">
+                                        <MatchBreakdownTooltip metrics={artist.metrics.matchBreakdown} />
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4 text-sm">
+                                  <div className="flex items-center gap-1">
+                                    <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                                    <span className="font-medium">{artist.rating}</span>
+                                  </div>
+                                  <span className="text-purple-300">{artist.specialization}</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-purple-300">${artist.hourlyRate}/hr</span>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Info className="h-3 w-3 text-purple-400 cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent className="bg-gray-900 border border-purple-500/30">
+                                        <div className="text-sm max-w-xs">{artist.metrics.pricing.explanation}</div>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </div>
+                                  <span className="text-purple-300">{artist.distance} miles away</span>
+                                </div>
+                              </div>
+
+                              <div className="flex flex-col items-end gap-2">
+                                <MiniRadarChart data={artist.metrics.radarData} size={60} />
+                                <span className="text-xs text-purple-300">Strengths</span>
+                              </div>
+                            </div>
+
+                            {/* Enhanced Metrics Row */}
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 p-3 bg-black/20 rounded-lg">
+                              <div className="text-center">
+                                <div className="text-lg font-bold text-white">
+                                  {artist.metrics.portfolioQuality.score}/100
+                                </div>
+                                <div className="text-xs text-purple-300">Portfolio Quality</div>
+                                <div className="text-xs text-green-400 mt-1">
+                                  {artist.metrics.portfolioQuality.callout}
+                                </div>
+                              </div>
+
+                              <div className="text-center">
+                                <div className="w-full bg-purple-950 rounded-full h-2 mb-1">
+                                  <div
+                                    className="bg-purple-500 h-2 rounded-full"
+                                    style={{ width: `${artist.metrics.consistencyScore}%` }}
+                                  ></div>
+                                </div>
+                                <div className="text-sm font-medium text-white">{artist.metrics.consistencyScore}%</div>
+                                <div className="text-xs text-purple-300">Style Consistency</div>
+                              </div>
+
+                              <div className="text-center">
+                                <div className="flex items-center justify-center gap-1 mb-1">
+                                  <Zap className="h-3 w-3 text-yellow-400" />
+                                  <span className="text-sm font-medium text-white">
+                                    {artist.metrics.speedComplexity.avgTimeSmall}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-purple-300">Avg. Small Piece</div>
+                              </div>
+
+                              <div className="text-center">
+                                <DynamicPriceEstimator pricing={artist.metrics.pricing} />
+                                <div className="text-xs text-purple-300 mt-1">Est. Price</div>
+                              </div>
+
+                              <div className="text-center">
+                                <AvailabilityHeatMap availability={artist.metrics.availability} />
+                              </div>
+                            </div>
+
+                            {/* Speed & Expertise Badges */}
+                            <div className="flex flex-wrap gap-2 mb-4">
+                              {artist.metrics.speedComplexity.expertise.map((skill, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="outline"
+                                  className="text-xs bg-purple-950/50 border-purple-500/30"
+                                >
+                                  {skill}
+                                </Badge>
+                              ))}
+                            </div>
+
+                            <div className="mb-4">
+                              <p className="text-sm text-gray-300 mb-3">{artist.bio}</p>
+                              <div className="flex gap-2">
+                                {artist.portfolio.slice(0, 3).map((work, index) => (
+                                  <div key={index} className="relative w-16 h-16 rounded-md overflow-hidden">
+                                    <Image
+                                      src={work || "/placeholder.svg"}
+                                      alt={`Work sample ${index + 1}`}
+                                      fill
+                                      className="object-cover"
+                                    />
+                                  </div>
                                 ))}
                               </div>
-
-                              <div className="mb-4">
-                                <p className="text-sm text-gray-300 mb-3">{artist.bio}</p>
-                                <div className="flex gap-2">
-                                  {artist.portfolio.slice(0, 3).map((work, index) => (
-                                    <div key={index} className="relative w-16 h-16 rounded-md overflow-hidden">
-                                      <Image
-                                        src={work || "/placeholder.svg"}
-                                        alt={`Work sample ${index + 1}`}
-                                        fill
-                                        className="object-cover"
-                                      />
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Artist Detailed Profile Dialog Trigger */}
-                              <Button
-                                className="w-full bg-purple-700 hover:bg-purple-600"
-                                onClick={() => setSelectedArtistForDialog(artist)} // Change to open dialog via state
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Full Profile & Contact
-                              </Button>
                             </div>
-                          </motion.div>
-                        ))}
-                      </div>
 
-                      <Button
-                        onClick={() => {
-                          setStep(1)
-                          setProgress(25)
-                          setPreferences({
-                            image: null,
-                            style: "",
-                            price: [200],
-                            date: undefined,
-                            startTime: "",
-                            endTime: "",
-                            location: "",
-                            radius: 10,
-                            experience: "",
-                          })
-                        }}
-                        variant="outline"
-                        className="w-full bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50 mt-6"
-                      >
-                        Start New Search
-                      </Button>
-                    </>
-                  )}
-                </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
+                            {/* Artist Detailed Profile Dialog Trigger */}
+                            <Button
+                              className="w-full bg-purple-700 hover:bg-purple-600"
+                              onClick={() => setSelectedArtistForDialog(artist)}
+                            >
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Full Profile & Contact
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      onClick={() => {
+                        setStep(1)
+                        setProgress(25)
+                        setPreferences({
+                          image: null,
+                          style: "",
+                          price: [200],
+                          date: undefined,
+                          startTime: "",
+                          endTime: "",
+                          location: "",
+                          radius: 10,
+                          experience: "",
+                        })
+                      }}
+                      variant="outline"
+                      className="w-full bg-purple-950/30 border-purple-500/30 hover:bg-purple-800/50 mt-6"
+                    >
+                      Start New Search
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Artist Comparison Modal */}
