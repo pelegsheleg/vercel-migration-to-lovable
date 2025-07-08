@@ -6,34 +6,13 @@ import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  ArrowLeft,
-  Save,
-  User,
-  MapPin,
-  Palette,
-  FileText,
-  Calendar,
-  MessageSquare,
-  CheckCircle,
-  Settings,
-  AlertCircle,
-  Eye,
-  Package,
-} from "lucide-react"
+import { ArrowLeft, Save, User, FileText, Settings, AlertCircle, Eye } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { Progress } from "@/components/ui/progress"
 
 // Import profile section components
 import { ProfileOverview } from "@/components/artist/profile/profile-overview"
-import { LocationSection } from "@/components/artist/profile/location-section"
-import { PricingSection } from "@/components/artist/profile/pricing-section"
 import { PortfolioSection } from "@/components/artist/profile/portfolio-section"
-import { CredentialsSection } from "@/components/artist/profile/credentials-section"
-import { AvailabilitySection } from "@/components/artist/profile/availability-section"
-import { MessagesSection } from "@/components/artist/profile/messages-section"
-import { DosAndDonts } from "@/components/artist/profile/dos-and-donts"
-import { ServicesSection } from "@/components/artist/profile/services-section"
 
 // Import styles
 import "@/app/styles/profile.css"
@@ -49,14 +28,8 @@ export default function ArtistProfileManagement() {
   // Profile completion data
   const profileCompletion = {
     overview: 100,
-    location: 75,
-    dosdonts: 50,
-    pricing: 100,
     portfolio: 80,
-    credentials: 30,
-    availability: 60,
-    messages: 100,
-    services: 40,
+    settings: 40,
     overall: 75,
   }
 
@@ -96,22 +69,10 @@ export default function ArtistProfileManagement() {
     switch (tab) {
       case "overview":
         return <User className="h-4 w-4" />
-      case "location":
-        return <MapPin className="h-4 w-4" />
-      case "dosdonts":
-        return <CheckCircle className="h-4 w-4" />
-      case "pricing":
-        return <Palette className="h-4 w-4" />
       case "portfolio":
         return <FileText className="h-4 w-4" />
-      case "credentials":
-        return <FileText className="h-4 w-4" />
-      case "availability":
-        return <Calendar className="h-4 w-4" />
-      case "messages":
-        return <MessageSquare className="h-4 w-4" />
-      case "services":
-        return <Package className="h-4 w-4" />
+      case "settings":
+        return <Settings className="h-4 w-4" />
       default:
         return <Settings className="h-4 w-4" />
     }
@@ -215,14 +176,8 @@ export default function ArtistProfileManagement() {
             <TabsList className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-9 gap-1 bg-transparent h-auto">
               {[
                 { id: "overview", label: "Overview" },
-                { id: "location", label: "Location" },
-                { id: "dosdonts", label: "Do's & Don'ts" },
-                { id: "pricing", label: "Pricing" },
-                { id: "services", label: "Services" },
                 { id: "portfolio", label: "Portfolio" },
-                { id: "credentials", label: "Credentials" },
-                { id: "availability", label: "Availability" },
-                { id: "messages", label: "Messages" },
+                { id: "settings", label: "Settings" },
               ].map((tab) => (
                 <TabsTrigger
                   key={tab.id}
@@ -254,38 +209,6 @@ export default function ArtistProfileManagement() {
               <ProfileOverview onChange={handleContentChange} />
             </TabsContent>
 
-            <TabsContent value="location" className="mt-0 animate-slide-in">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Location Settings</h2>
-                <p className="text-purple-300">Manage your studio locations and travel preferences</p>
-              </div>
-              <LocationSection onChange={handleContentChange} />
-            </TabsContent>
-
-            <TabsContent value="dosdonts" className="mt-0 animate-slide-in">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Do's & Don'ts</h2>
-                <p className="text-purple-300">Set expectations for your clients about your services</p>
-              </div>
-              <DosAndDonts onChange={handleContentChange} />
-            </TabsContent>
-
-            <TabsContent value="pricing" className="mt-0 animate-slide-in">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Pricing Structure</h2>
-                <p className="text-purple-300">Set your rates, deposits, and pricing policies</p>
-              </div>
-              <PricingSection onChange={handleContentChange} />
-            </TabsContent>
-
-            <TabsContent value="services" className="mt-0 animate-slide-in">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Services & Packages</h2>
-                <p className="text-purple-300">Define the services and packages you offer to clients</p>
-              </div>
-              <ServicesSection onChange={handleContentChange} />
-            </TabsContent>
-
             <TabsContent value="portfolio" className="mt-0 animate-slide-in">
               <div className="mb-4">
                 <h2 className="text-2xl font-bold text-white mb-2">Portfolio Management</h2>
@@ -294,28 +217,15 @@ export default function ArtistProfileManagement() {
               <PortfolioSection onChange={handleContentChange} />
             </TabsContent>
 
-            <TabsContent value="credentials" className="mt-0 animate-slide-in">
+            <TabsContent value="settings" className="mt-0 animate-slide-in">
               <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Professional Credentials</h2>
-                <p className="text-purple-300">Add your certifications, licenses, and awards</p>
+                <h2 className="text-2xl font-bold text-white mb-2">Settings</h2>
+                <p className="text-purple-300">Manage your account settings</p>
               </div>
-              <CredentialsSection onChange={handleContentChange} />
-            </TabsContent>
-
-            <TabsContent value="availability" className="mt-0 animate-slide-in">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Availability Settings</h2>
-                <p className="text-purple-300">Set your working hours and booking preferences</p>
+              <div>
+                {/* Placeholder for settings section */}
+                <p>Settings content here</p>
               </div>
-              <AvailabilitySection onChange={handleContentChange} />
-            </TabsContent>
-
-            <TabsContent value="messages" className="mt-0 animate-slide-in">
-              <div className="mb-4">
-                <h2 className="text-2xl font-bold text-white mb-2">Message Settings</h2>
-                <p className="text-purple-300">Manage your notification preferences and auto-responses</p>
-              </div>
-              <MessagesSection onChange={handleContentChange} />
             </TabsContent>
           </div>
         </Tabs>
@@ -336,17 +246,7 @@ export default function ArtistProfileManagement() {
               <Button
                 variant="outline"
                 onClick={() => {
-                  const tabs = [
-                    "overview",
-                    "location",
-                    "dosdonts",
-                    "pricing",
-                    "services",
-                    "portfolio",
-                    "credentials",
-                    "availability",
-                    "messages",
-                  ]
+                  const tabs = ["overview", "portfolio", "settings"]
                   const currentIndex = tabs.indexOf(activeTab)
                   if (currentIndex > 0) {
                     setActiveTab(tabs[currentIndex - 1])
@@ -358,20 +258,10 @@ export default function ArtistProfileManagement() {
               </Button>
             )}
 
-            {activeTab !== "messages" && (
+            {activeTab !== "settings" && (
               <Button
                 onClick={() => {
-                  const tabs = [
-                    "overview",
-                    "location",
-                    "dosdonts",
-                    "pricing",
-                    "services",
-                    "portfolio",
-                    "credentials",
-                    "availability",
-                    "messages",
-                  ]
+                  const tabs = ["overview", "portfolio", "settings"]
                   const currentIndex = tabs.indexOf(activeTab)
                   if (currentIndex < tabs.length - 1) {
                     setActiveTab(tabs[currentIndex + 1])
