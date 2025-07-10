@@ -57,6 +57,7 @@
     "react-intersection-observer": "latest",
     "react-masonry-css": "latest",
     "react-resizable-panels": "^2.1.7",
+    "react-window": "latest",
     "recharts": "2.15.0",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.5.5",
